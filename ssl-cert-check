@@ -17,6 +17,8 @@ PROGRAMVERSION=4.14-1
 #  - Adds HTTPS_PROXY support
 #  - Adds "-j" option to print certificate subject / common name
 #  - Connect to port 443 by default
+#  - Adds "-T" timeout option
+#
 # Version 4.14
 #  - Fixed HOST / PORT discovery @mhow2
 #
@@ -651,6 +653,7 @@ usage()
     echo "  -s commmon name   : Server to connect to (interactive mode)"
     echo "  -S                : Print validation information"
     echo "  -t type           : Specify the certificate type"
+    echo "  -T seconds        : Timeout request after N seconds"
     echo "  -V                : Print version information"
     echo "  -x days           : Certificate expiration interval (eg. if cert_date < days)"
     echo ""
@@ -706,9 +709,16 @@ check_server_status() {
         OPTIONS="-connect ${1}:${2} -servername ${1} $TLSFLAG"
     fi
 
-    echo "" | "${OPENSSL}" s_client $OPTIONS 2> "${ERROR_TMP}" 1> "${CERT_TMP}"
+    if [ -n "${TIMEOUT}" ]; then
+        echo "" | timeout "${TIMEOUT}" "${OPENSSL}" s_client $OPTIONS 2> "${ERROR_TMP}" 1> "${CERT_TMP}"
+    else
+        echo "" | "${OPENSSL}" s_client $OPTIONS 2> "${ERROR_TMP}" 1> "${CERT_TMP}"
+    fi
 
-    if "${GREP}" -i "Connection refused" "${ERROR_TMP}" > /dev/null; then
+    if [ "$?" -eq 124 ]; then
+        prints "${1}" "${2}" "Timeout" "Unknown"
+        set_returncode 3
+    elif "${GREP}" -i "Connection refused" "${ERROR_TMP}" > /dev/null; then
         prints "${1}" "${2}" "Connection refused" "Unknown"
         set_returncode 3
     elif "${GREP}" -i "No route to host" "${ERROR_TMP}" > /dev/null; then
@@ -840,7 +850,7 @@ check_file_status() {
 #################################
 ### Start of main program
 #################################
-while getopts abc:d:e:E:f:hijk:nNp:qs:St:Vx: option
+while getopts abc:d:e:E:f:hijk:nNp:qs:St:T:Vx: option
 do
     case "${option}" in
         a) ALARM="TRUE";;
@@ -863,6 +873,7 @@ do
         s) HOST=$OPTARG;;
         S) VALIDATION="TRUE";;
         t) CERTTYPE=$OPTARG;;
+        T) TIMEOUT=${OPTARG};;
         V) echo "${PROGRAMVERSION}"
            exit 0
         ;;
