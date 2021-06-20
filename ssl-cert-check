@@ -696,7 +696,7 @@ check_server_status() {
             PROXYINFO="${PROXYINFO%/}"
             NOPROXY="${NO_PROXY:-${no_proxy}}"
             # skip proxy setting if NO_PROXY is defined and the host "is listed" on NO_PROXY environment variable
-            if [ -z "${NOPROXY}" ] || [ "${NOPROXY}" != *"$1"* ]; then
+            if [ -z "${NOPROXY}" ] || [[ "${NOPROXY}" != *"$1"* ]]; then
                 TLSFLAG="$TLSFLAG -proxy ${PROXYINFO}"
             fi
         fi
