@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-PROGRAMVERSION=4.14
+PROGRAMVERSION=4.14-1
 #
 # Program: SSL Certificate Check <ssl-cert-check>
 #
@@ -9,10 +9,12 @@ PROGRAMVERSION=4.14
 #
 # Author: Matty < matty at prefetch dot net >
 #
-# Last Updated: 11-12-2020
+# Last Updated: 2021-06-20
 #
 # Revision History:
 #
+# Version 4.14-1 @maurom
+#  - Adds HTTPS_PROXY support
 # Version 4.14
 #  - Fixed HOST / PORT discovery @mhow2
 #
@@ -668,6 +670,22 @@ check_server_status() {
         *)                      TLSFLAG="";;
     esac
 
+    case "$PORT" in
+    https|443|"")
+        # use proxy environment variable if it is defined and we're checking against https
+        PROXYINFO="${HTTPS_PROXY:-${https_proxy}}"
+        if [[ ! -z "${PROXYINFO}" ]]; then
+            PROXYINFO="${PROXYINFO#http://}"
+            PROXYINFO="${PROXYINFO%/}"
+            NOPROXY="${NO_PROXY:-${no_proxy}}"
+            # skip proxy setting if NO_PROXY is defined and the host "is listed" on NO_PROXY environment variable
+            if [ -z "${NOPROXY}" ] || [ "${NOPROXY}" != *"$1"* ]; then
+                TLSFLAG="$TLSFLAG -proxy ${PROXYINFO}"
+            fi
+        fi
+      ;;
+    esac
+
     if [ "${TLSSERVERNAME}" = "FALSE" ]; then
         OPTIONS="-connect ${1}:${2} $TLSFLAG"
     else
@@ -696,6 +714,10 @@ check_server_status() {
         set_returncode 3
     elif "${GREP}" -i "Name or service not known" "${ERROR_TMP}" > /dev/null; then
         prints "${1}" "${2}" "Unable to resolve the DNS name ${1}" "Unknown"
+        set_returncode 3
+    elif "${GREP}" -i "s_client" "${ERROR_TMP}" > /dev/null; then
+        # fail when encountering "http connect failed" proxy errors
+        prints "${1}" "${2}" "$("${GREP}" s_client "${ERROR_TMP}" | cut -d: -f2 | tr -d "\\r\\n")" "Unknown"
         set_returncode 3
     else
         check_file_status "${CERT_TMP}" "${1}" "${2}"
