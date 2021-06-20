@@ -542,7 +542,7 @@ print_heading()
     if [ "${NOHEADER}" != "TRUE" ]; then
         if [ "${QUIET}" != "TRUE" ] && [ "${ISSUER}" = "TRUE" ] && [ "${NAGIOS}" != "TRUE" ] && [ "${VALIDATION}" != "TRUE" ] && [ "${SHOWSUBJECT}" = "TRUE" ]; then
             ${PRINTF} "\n%-35s %-25s %-17s %-8s %-11s %-4s\n" "Host" "Subject" "Issuer" "Status" "Expires" "Days"
-            echo "----------------------------------- ----------------- ----------------- -------- ----------- ----"
+            echo "----------------------------------- ------------------------- ----------------- -------- ----------- ----"
 
         elif [ "${QUIET}" != "TRUE" ] && [ "${ISSUER}" = "TRUE" ] && [ "${NAGIOS}" != "TRUE" ] && [ "${VALIDATION}" != "TRUE" ]; then
             ${PRINTF} "\n%-35s %-17s %-8s %-11s %-4s\n" "Host" "Issuer" "Status" "Expires" "Days"
