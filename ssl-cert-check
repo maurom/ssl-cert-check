@@ -15,6 +15,7 @@ PROGRAMVERSION=4.14-1
 #
 # Version 4.14-1 @maurom
 #  - Adds HTTPS_PROXY support
+#  - Connect to port 443 by default
 # Version 4.14
 #  - Fixed HOST / PORT discovery @mhow2
 #
@@ -942,6 +943,10 @@ elif [ -f "${SERVERFILE}" ]; then
         HOST=${LINE%% *}
         PORT=${LINE##* }
         IFS=" "
+        # default to 443 if port is not defined
+        if [ "$PORT" = "$HOST" ]; then
+            PORT=443
+        fi
         if [ "$PORT" = "FILE" ]; then
             check_file_status "${HOST}" "FILE" "${HOST}"
         else
