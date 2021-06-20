@@ -15,6 +15,7 @@ PROGRAMVERSION=4.14-1
 #
 # Version 4.14-1 @maurom
 #  - Adds HTTPS_PROXY support
+#  - Adds "-j" option to print certificate subject / common name
 #  - Connect to port 443 by default
 # Version 4.14
 #  - Fixed HOST / PORT discovery @mhow2
@@ -499,7 +500,14 @@ prints()
         return
     fi
 
-    if [ "${QUIET}" != "TRUE" ] && [ "${ISSUER}" = "TRUE" ] && [ "${VALIDATION}" != "TRUE" ]; then
+    if [ "${QUIET}" != "TRUE" ] && [ "${ISSUER}" = "TRUE" ] && [ "${VALIDATION}" != "TRUE" ] && [ "${SHOWSUBJECT}" = "TRUE" ]; then
+        MIN_DATE=$(echo "$4" | "${AWK}" '{ printf "%3s %2d %4d", $1, $2, $4 }')
+        if [ "${NAGIOS}" = "TRUE" ]; then
+            ${PRINTF} "%-35s %-25s %-17s %-8s %-11s %s\n" "$1:$2" "$7" "$6" "$3" "$MIN_DATE" "|days=$5"
+        else
+            ${PRINTF} "%-35s %-25s %-17s %-8s %-11s %4d\n" "$1:$2" "$7" "$6" "$3" "$MIN_DATE" "$5"
+        fi
+    elif [ "${QUIET}" != "TRUE" ] && [ "${ISSUER}" = "TRUE" ] && [ "${VALIDATION}" != "TRUE" ]; then
         MIN_DATE=$(echo "$4" | "${AWK}" '{ printf "%3s %2d %4d", $1, $2, $4 }')
         if [ "${NAGIOS}" = "TRUE" ]; then
             ${PRINTF} "%-35s %-17s %-8s %-11s %s\n" "$1:$2" "$6" "$3" "$MIN_DATE" "|days=$5"
@@ -530,7 +538,11 @@ prints()
 print_heading()
 {
     if [ "${NOHEADER}" != "TRUE" ]; then
-        if [ "${QUIET}" != "TRUE" ] && [ "${ISSUER}" = "TRUE" ] && [ "${NAGIOS}" != "TRUE" ] && [ "${VALIDATION}" != "TRUE" ]; then
+        if [ "${QUIET}" != "TRUE" ] && [ "${ISSUER}" = "TRUE" ] && [ "${NAGIOS}" != "TRUE" ] && [ "${VALIDATION}" != "TRUE" ] && [ "${SHOWSUBJECT}" = "TRUE" ]; then
+            ${PRINTF} "\n%-35s %-25s %-17s %-8s %-11s %-4s\n" "Host" "Subject" "Issuer" "Status" "Expires" "Days"
+            echo "----------------------------------- ----------------- ----------------- -------- ----------- ----"
+
+        elif [ "${QUIET}" != "TRUE" ] && [ "${ISSUER}" = "TRUE" ] && [ "${NAGIOS}" != "TRUE" ] && [ "${VALIDATION}" != "TRUE" ]; then
             ${PRINTF} "\n%-35s %-17s %-8s %-11s %-4s\n" "Host" "Issuer" "Status" "Expires" "Days"
             echo "----------------------------------- ----------------- -------- ----------- ----"
 
@@ -630,6 +642,7 @@ usage()
     echo "  -f cert file      : File with a list of FQDNs and ports"
     echo "  -h                : Print this screen"
     echo "  -i                : Print the issuer of the certificate"
+    echo "  -j                : Print the subject of the certificate"
     echo "  -k password       : PKCS12 file password"
     echo "  -n                : Run as a Nagios plugin"
     echo "  -N                : Run as a Nagios plugin and output one line summary (implies -n, requires -f or -d)"
@@ -827,7 +840,7 @@ check_file_status() {
 #################################
 ### Start of main program
 #################################
-while getopts abc:d:e:E:f:hik:nNp:qs:St:Vx: option
+while getopts abc:d:e:E:f:hijk:nNp:qs:St:Vx: option
 do
     case "${option}" in
         a) ALARM="TRUE";;
@@ -840,6 +853,7 @@ do
         h) usage
            exit 1;;
         i) ISSUER="TRUE";;
+        j) SHOWSUBJECT="TRUE";;
         k) PKCSDBPASSWD=${OPTARG};;
         n) NAGIOS="TRUE";;
         N) NAGIOS="TRUE"
