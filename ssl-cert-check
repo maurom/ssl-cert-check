@@ -14,6 +14,8 @@ PROGRAMVERSION=4.14-2
 # Revision History:
 #
 # Version 4.14-2 @maurom
+#  - Reserves the "-j" option for the soon-to-be JSON output
+#  - Defines "-C" option to print certificate subject / common name
 #  - Specifies the timeout binary using "command -v"
 #
 # Version 4.14-1 @maurom
@@ -636,11 +638,12 @@ set_summary()
 ##########################################
 usage()
 {
-    echo "Usage: $0 [ -e email address ] [-E sender email address] [ -x days ] [-q] [-a] [-b] [-h] [-i] [-n] [-N] [-v]"
-    echo "       { [ -s common_name ] && [ -p port] } || { [ -f cert_file ] } || { [ -c cert file ] } || { [ -d cert dir ] }"
+    echo "Usage: $0 [OPTIONS] [-e email address] [-E sender email address] [-x days] [-T seconds]"
+    echo "       { [-s common_name] && [-p port] } || [-f cert_file] || [-c cert file] || [-d cert dir]"
     echo ""
     echo "  -a                : Send a warning message through E-mail"
     echo "  -b                : Will not print header"
+    echo "  -C                : Print the subject's common name of the certificate"
     echo "  -c cert file      : Print the expiration date for the PEM or PKCS12 formatted certificate in cert file"
     echo "  -d cert directory : Print the expiration date for the PEM or PKCS12 formatted certificates in cert directory"
     echo "  -e E-mail address : E-mail address to send expiration notices"
@@ -648,7 +651,6 @@ usage()
     echo "  -f cert file      : File with a list of FQDNs and ports"
     echo "  -h                : Print this screen"
     echo "  -i                : Print the issuer of the certificate"
-    echo "  -j                : Print the subject of the certificate"
     echo "  -k password       : PKCS12 file password"
     echo "  -n                : Run as a Nagios plugin"
     echo "  -N                : Run as a Nagios plugin and output one line summary (implies -n, requires -f or -d)"
@@ -854,12 +856,13 @@ check_file_status() {
 #################################
 ### Start of main program
 #################################
-while getopts abc:d:e:E:f:hijk:nNp:qs:St:T:Vx: option
+while getopts abc:Cd:e:E:f:hik:nNp:qs:St:T:Vx: option
 do
     case "${option}" in
         a) ALARM="TRUE";;
         b) NOHEADER="TRUE";;
         c) CERTFILE=${OPTARG};;
+        C) SHOWSUBJECT="TRUE";;
         d) CERTDIRECTORY=${OPTARG};;
         e) ADMIN=${OPTARG};;
         E) SENDER=${OPTARG};;
@@ -867,7 +870,6 @@ do
         h) usage
            exit 1;;
         i) ISSUER="TRUE";;
-        j) SHOWSUBJECT="TRUE";;
         k) PKCSDBPASSWD=${OPTARG};;
         n) NAGIOS="TRUE";;
         N) NAGIOS="TRUE"
