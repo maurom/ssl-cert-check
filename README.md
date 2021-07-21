@@ -36,14 +36,15 @@ Usage: ./ssl-cert-check [ -e email address ] [-E sender email address] [ -x days
 Print the expiration times for one or more certificates listed in ssldomains:
 
 <pre>
-$ ssl-cert-check -f ssldomains
-Host                                            Status       Expires      Days Left
------------------------------------------------ ------------ ------------ ----------
-www.prefetch.com:443                            Valid        May 23 2006  218
-mail.prefetch.net:993                           Valid        Jun 20 2006  246
-gmail.google.com:443                            Valid        Jun 7 2006   233
-www.sun.com:443                                 Valid        May 11 2009  1302
-www.spotch.com:443                              Connection refused Unknown Unknown
+$ ssl-cert-check -i -C -f ssldomains
+Host                                Subject                   Issuer            Status   Expires     Days
+----------------------------------- ------------------------- ----------------- -------- ----------- ----
+www.spotch.com:443                  www.spotch.systems        Let's Encrypt     Valid    Aug 23 2021   33
+os.educ.gob.ar:imaps                *.educ.gob.ar             Sectigo Limited   Expired  Jul 13 2021   -8
+correo.ada.gba.gov.ar:smtps         correo.ada.gba.gov.ar     Let's Encrypt     Valid    Sep  4 2021   45
+gmail.google.com:443                *.google.com              Google Trust Serv Valid    Sep 14 2021   55
+www.debian.org:443                  www.debian.org            Let's Encrypt     Valid    Sep 26 2021   67
+www.prefetch.com:443                Unable to resolve the DNS name              Unknown    0    0    0
 </pre>
 
 Check all certificates with file pattern "/etc/haproxy/ssl/\*.pem"
