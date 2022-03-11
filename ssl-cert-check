@@ -965,7 +965,12 @@ if [ "${HOST}" != "" ]; then
 ### If a file is passed to the "-f" option on the command line, check
 ### each certificate or server / port combination in the file to see if
 ### they are about to expire
-elif [ -f "${SERVERFILE}" ]; then
+elif [ -n "${SERVERFILE}" ]; then
+    if [ ! -r "${SERVERFILE}" ]; then
+        echo "ERROR: File ${SERVERFILE} does not exist or cannot be read."
+        echo "FIX: Please check the path and permissions."
+        exit 1
+    fi
     print_heading
 
     IFS=$'\n'
