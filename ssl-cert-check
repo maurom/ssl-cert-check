@@ -316,6 +316,9 @@ NAGIOS="FALSE"
 # Don't summarize Nagios output by default (cmdline: -N)
 NAGIOSSUMMARY="FALSE"
 
+# Don't add a footer summary by default (cmdline: -M)
+FOOTERSUMMARY="FALSE"
+
 # NULL out the PKCSDBPASSWD variable for later use (cmdline: -k)
 PKCSDBPASSWD=""
 
@@ -361,6 +364,7 @@ fi
 RETCODE=0
 
 # Certificate counters and minimum difference. Initialize to 0.
+SUMMARY_CHECKED=0
 SUMMARY_VALID=0
 SUMMARY_WILL_EXPIRE=0
 SUMMARY_EXPIRED=0
@@ -592,6 +596,18 @@ print_summary()
     fi
 }
 
+###############################################################################
+# Purpose: Print a summary of the performed checks at the footer of the report
+# Arguments:
+#   None
+###############################################################################
+print_footer_summary()
+{
+    test "${FOOTERSUMMARY}" != "TRUE" && return
+    ${PRINTF} "\n%s endpoint(s) checked, %s valid certificate(s), %s expired, %s expiring since on %s\n" \
+        "${SUMMARY_CHECKED}" "${SUMMARY_VALID}" "${SUMMARY_EXPIRED}" "${SUMMARY_WILL_EXPIRE}" "${SUMMARY_MIN_DATE}"
+}
+
 #############################################################
 # Purpose: Set returncode to value if current value is lower
 # Arguments:
@@ -639,7 +655,7 @@ set_summary()
 usage()
 {
     echo "Usage: $0 [OPTIONS] [-e email address] [-E sender email address] [-x days] [-T seconds]"
-    echo "       { [-s common_name] && [-p port] } || [-f cert_file] || [-c cert file] || [-d cert dir]"
+    echo "       { [-s common_name] && [-p port] } || [-f domains file] || [-c cert file] || [-d cert dir]"
     echo ""
     echo "  -a                : Send a warning message through E-mail"
     echo "  -b                : Will not print header"
@@ -648,7 +664,8 @@ usage()
     echo "  -d cert directory : Print the expiration date for the PEM or PKCS12 formatted certificates in cert directory"
     echo "  -e E-mail address : E-mail address to send expiration notices"
     echo "  -E E-mail sender  : E-mail address of the sender"
-    echo "  -f cert file      : File with a list of FQDNs and ports"
+    echo "  -f domains file   : File with a list of FQDNs and ports"
+    echo "  -F                : Add a status summary footer"
     echo "  -h                : Print this screen"
     echo "  -i                : Print the issuer of the certificate"
     echo "  -k password       : PKCS12 file password"
@@ -714,6 +731,8 @@ check_server_status() {
     else
         OPTIONS="-connect ${1}:${2} -servername ${1} $TLSFLAG"
     fi
+
+    SUMMARY_CHECKED=$((SUMMARY_CHECKED+1))
 
     if [ -n "${TIMEOUT}" ]; then
         echo "" | "${TIMEOUTCMD}" "${TIMEOUT}" "${OPENSSL}" s_client $OPTIONS 2> "${ERROR_TMP}" 1> "${CERT_TMP}"
@@ -856,7 +875,7 @@ check_file_status() {
 #################################
 ### Start of main program
 #################################
-while getopts abc:Cd:e:E:f:hik:nNp:qs:St:T:Vx: option
+while getopts abc:Cd:e:E:f:Fhik:nNp:qs:St:T:Vx: option
 do
     case "${option}" in
         a) ALARM="TRUE";;
@@ -867,6 +886,7 @@ do
         e) ADMIN=${OPTARG};;
         E) SENDER=${OPTARG};;
         f) SERVERFILE=$OPTARG;;
+        F) FOOTERSUMMARY="TRUE";;
         h) usage
            exit 1;;
         i) ISSUER="TRUE";;
@@ -990,6 +1010,7 @@ elif [ -n "${SERVERFILE}" ]; then
         fi
     done
     IFS="${OLDIFS}"
+    print_footer_summary
     print_summary
 ### Check to see if the certificate in CERTFILE is about to expire
 elif [ "${CERTFILE}" != "" ]; then

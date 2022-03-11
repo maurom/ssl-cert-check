@@ -6,7 +6,7 @@ ssl-cert-check is a Bourne shell script that can be used to report on expiring S
 <pre>
 $ ./ssl-cert-check
 Usage: ./ssl-cert-check [OPTIONS] [-e email address] [-E sender email address] [-x days] [-T seconds]
-       { [-s common_name] && [-p port] } || [-f cert_file] || [-c cert file] || [-d cert dir]
+       { [ -s common_name ] && [ -p port] } || { [ -f domains file ] } || { [ -c cert file ] } || { [ -d cert dir ] }
 
   -a                : Send a warning message through E-mail
   -b                : Will not print header
@@ -15,7 +15,8 @@ Usage: ./ssl-cert-check [OPTIONS] [-e email address] [-E sender email address] [
   -d cert directory : Print the expiration date for the PEM or PKCS12 formatted certificates in cert directory
   -e E-mail address : E-mail address to send expiration notices
   -E E-mail sender  : E-mail address of the sender
-  -f cert file      : File with a list of FQDNs and ports
+  -f domains file   : File with a list of FQDNs and ports
+  -F                : Add a status summary footer
   -h                : Print this screen
   -i                : Print the issuer of the certificate
   -k password       : PKCS12 file password
@@ -38,7 +39,7 @@ Usage: ./ssl-cert-check [OPTIONS] [-e email address] [-E sender email address] [
 Print the expiration times for one or more certificates listed in ssldomains:
 
 <pre>
-$ ssl-cert-check -i -C -f ssldomains
+$ ssl-cert-check -i -C -F -f ssldomains
 Host                                Subject                   Issuer            Status   Expires     Days
 ----------------------------------- ------------------------- ----------------- -------- ----------- ----
 www.spotch.com:443                  www.spotch.systems        Let's Encrypt     Valid    Aug 23 2021   33
@@ -47,6 +48,8 @@ correo.ada.gba.gov.ar:smtps         correo.ada.gba.gov.ar     Let's Encrypt     
 gmail.google.com:443                *.google.com              Google Trust Serv Valid    Sep 14 2021   55
 www.debian.org:443                  www.debian.org            Let's Encrypt     Valid    Sep 26 2021   67
 www.prefetch.com:443                Unable to resolve the DNS name              Unknown    0    0    0
+
+6 endpoint(s) checked, 4 valid certificate(s), 1 expired, 0 expiring since on Jul 13 2021
 </pre>
 
 Check all certificates with file pattern "/etc/haproxy/ssl/\*.pem"
