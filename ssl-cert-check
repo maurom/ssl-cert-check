@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-PROGRAMVERSION=4.14-2
+PROGRAMVERSION=4.14-mm4
 #
 # Program: SSL Certificate Check <ssl-cert-check>
 #
@@ -9,9 +9,17 @@ PROGRAMVERSION=4.14-2
 #
 # Author: Matty < matty at prefetch dot net >
 #
-# Last Updated: 2021-06-21
+# Last Updated: 2022-03-14
 #
 # Revision History:
+#
+# Version 4.14-mm4 @maurom
+#  - Adds check for valid hostname (enabled by default)
+#    This check can be omitted with the new "-H" flag
+#
+# Version 4.14-mm3 @maurom
+#  - Adds "-F" option for a footer summary of the performed checks
+#  - Bail out if domains file does not exist or cannot be read
 #
 # Version 4.14-2 @maurom
 #  - Reserves the "-j" option for the soon-to-be JSON output
@@ -316,7 +324,7 @@ NAGIOS="FALSE"
 # Don't summarize Nagios output by default (cmdline: -N)
 NAGIOSSUMMARY="FALSE"
 
-# Don't add a footer summary by default (cmdline: -M)
+# Don't add a footer summary by default (cmdline: -F)
 FOOTERSUMMARY="FALSE"
 
 # NULL out the PKCSDBPASSWD variable for later use (cmdline: -k)
@@ -324,6 +332,9 @@ PKCSDBPASSWD=""
 
 # Type of certificate (PEM, DER, NET) (cmdline: -t)
 CERTTYPE="pem"
+
+# Indicates if we should check if the hostname matches what's on the certificate
+VERIFYHOSTNAME="TRUE"
 
 # Location of system binaries
 AWK=$(command -v awk)
@@ -667,6 +678,7 @@ usage()
     echo "  -f domains file   : File with a list of FQDNs and ports"
     echo "  -F                : Add a status summary footer"
     echo "  -h                : Print this screen"
+    echo "  -H                : Skip hostname match with CN or SAN check"
     echo "  -i                : Print the issuer of the certificate"
     echo "  -k password       : PKCS12 file password"
     echo "  -n                : Run as a Nagios plugin"
@@ -727,9 +739,9 @@ check_server_status() {
     esac
 
     if [ "${TLSSERVERNAME}" = "FALSE" ]; then
-        OPTIONS="-connect ${1}:${2} $TLSFLAG"
+        OPTIONS="-connect ${1}:${2} -verify_hostname ${1} $TLSFLAG"
     else
-        OPTIONS="-connect ${1}:${2} -servername ${1} $TLSFLAG"
+        OPTIONS="-connect ${1}:${2} -servername ${1} -verify_hostname ${1} $TLSFLAG"
     fi
 
     SUMMARY_CHECKED=$((SUMMARY_CHECKED+1))
@@ -863,8 +875,18 @@ check_file_status() {
         RETCODE_LOCAL=1
 
     else
-        prints "${HOST}" "${PORT}" "Valid" "${CERTDATE}" "${CERTDIFF}" "${CERTISSUER}" "${COMMONNAME}" "${SERIAL}"
+        STATUS="Valid"
         RETCODE_LOCAL=0
+
+        ### If certificate came from server, check if wrong name
+        if [ "$VERIFYHOSTNAME" = "TRUE" ] && [ -f "${ERROR_TMP}" ]; then
+            if "${GREP}" -i "verify error:num=62:Hostname mismatch" "${ERROR_TMP}" > /dev/null; then
+                STATUS="WrongSAN"
+                RETCODE_LOCAL=3
+            fi
+        fi
+
+        prints "${HOST}" "${PORT}" "${STATUS}" "${CERTDATE}" "${CERTDIFF}" "${CERTISSUER}" "${COMMONNAME}" "${SERIAL}"
     fi
 
     set_returncode "${RETCODE_LOCAL}"
@@ -875,7 +897,7 @@ check_file_status() {
 #################################
 ### Start of main program
 #################################
-while getopts abc:Cd:e:E:f:Fhik:nNp:qs:St:T:Vx: option
+while getopts abc:Cd:e:E:f:FhHik:nNp:qs:St:T:Vx: option
 do
     case "${option}" in
         a) ALARM="TRUE";;
@@ -889,6 +911,7 @@ do
         F) FOOTERSUMMARY="TRUE";;
         h) usage
            exit 1;;
+        H) VERIFYHOSTNAME="FALSE";;
         i) ISSUER="TRUE";;
         k) PKCSDBPASSWD=${OPTARG};;
         n) NAGIOS="TRUE";;

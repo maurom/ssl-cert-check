@@ -48,8 +48,9 @@ correo.ada.gba.gov.ar:smtps         correo.ada.gba.gov.ar     Let's Encrypt     
 gmail.google.com:443                *.google.com              Google Trust Serv Valid    Sep 14 2021   55
 www.debian.org:443                  www.debian.org            Let's Encrypt     Valid    Sep 26 2021   67
 www.prefetch.com:443                Unable to resolve the DNS name              Unknown    0    0    0
+www2.mincyt.gob.ar:443              servicios.roecyt.minc...  Let's Encrypt     WrongSAN Sep  4 2021   45
 
-6 endpoint(s) checked, 4 valid certificate(s), 1 expired, 0 expiring since on Jul 13 2021
+7 endpoint(s) checked, 3 valid certificate(s), 1 expired, 0 expiring since on Jul 13 2021
 </pre>
 
 Check all certificates with file pattern "/etc/haproxy/ssl/\*.pem"
