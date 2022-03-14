@@ -18,6 +18,7 @@ Usage: ./ssl-cert-check [OPTIONS] [-e email address] [-E sender email address] [
   -f domains file   : File with a list of FQDNs and ports
   -F                : Add a status summary footer
   -h                : Print this screen
+  -H                : Skip 'hostname matches CN or SAN' check
   -i                : Print the issuer of the certificate
   -k password       : PKCS12 file password
   -n                : Run as a Nagios plugin

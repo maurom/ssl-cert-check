@@ -678,7 +678,7 @@ usage()
     echo "  -f domains file   : File with a list of FQDNs and ports"
     echo "  -F                : Add a status summary footer"
     echo "  -h                : Print this screen"
-    echo "  -H                : Skip hostname match with CN or SAN check"
+    echo "  -H                : Skip 'hostname matches CN or SAN' check"
     echo "  -i                : Print the issuer of the certificate"
     echo "  -k password       : PKCS12 file password"
     echo "  -n                : Run as a Nagios plugin"
