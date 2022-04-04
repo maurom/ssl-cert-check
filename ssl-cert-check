@@ -615,8 +615,8 @@ print_summary()
 print_footer_summary()
 {
     test "${FOOTERSUMMARY}" != "TRUE" && return
-    ${PRINTF} "\n%s endpoint(s) checked, %s valid certificate(s), %s expired, %s expiring since on %s\n" \
-        "${SUMMARY_CHECKED}" "${SUMMARY_VALID}" "${SUMMARY_EXPIRED}" "${SUMMARY_WILL_EXPIRE}" "${SUMMARY_MIN_DATE}"
+    ${PRINTF} "\n%s endpoint(s) checked, %s valid certificate(s), %s expiring, %s expired since %s\n" \
+        "${SUMMARY_CHECKED}" "${SUMMARY_VALID}" "${SUMMARY_WILL_EXPIRE}" "${SUMMARY_EXPIRED}" "${SUMMARY_MIN_DATE}"
 }
 
 #############################################################

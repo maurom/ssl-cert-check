@@ -51,7 +51,7 @@ www.debian.org:443                  www.debian.org            Let's Encrypt     
 www.prefetch.com:443                Unable to resolve the DNS name              Unknown    0    0    0
 www2.mincyt.gob.ar:443              servicios.roecyt.minc...  Let's Encrypt     WrongSAN Sep  4 2021   45
 
-7 endpoint(s) checked, 4 valid certificate(s), 1 expired, 0 expiring since on Jul 13 2021
+7 endpoint(s) checked, 4 valid certificate(s), 0 expiring, 1 expired since Jul 13 2021
 </pre>
 
 Check all certificates with file pattern "/etc/haproxy/ssl/\*.pem"
@@ -73,4 +73,7 @@ $ ssl-cert-check -a -f ssldomains -q -x 60 -e admin@prefetch.net
 
 # Additional Documentation
 
-Documentation And Examples: http://prefetch.net/articles/checkcertificate.html
+- J. SCHAUMANN. 2022. Debugging Certificate Errors  
+  <https://www.netmeister.org/blog/debugging-certificate-errors.html>
+- R. MATTESON. 2020. Proactively Handling Certificate Expiration With ssl-cert-check  
+  <http://prefetch.net/articles/checkcertificate.html>
